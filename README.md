@@ -61,13 +61,8 @@ namespace NishinoLibrary
 
         
 
-        //Clickメソッド
-        public void Click(string kind_element)
-        {
-            Console.WriteLine("整備中(メソッドが定義されていないよ。後で処理を書いてね)");
-        }
 
-        public List<string> ReturnElementString(string base_tag,string tag,string word)
+        public List<string> ReturnElementString(string base_tag, string tag, string word)
         {
             //指定タグのエレメントを持つ一覧を検索
             ReadOnlyCollection<IWebElement> elements = chrome.FindElements(By.TagName(base_tag));
@@ -80,6 +75,19 @@ namespace NishinoLibrary
                 }
             }
             return sort_string;
+        }
+
+
+        public void OutputTextbox(string input_word,int box_num)
+        {
+            //chrome.FindElement(By.ClassName("form-control")).SendKeys(input_word);
+            chrome.FindElements(By.ClassName("form-control"))[box_num].SendKeys(input_word);
+        }
+
+        //Clickメソッド(工事中)
+        public void Click(string kind_element)
+        {
+            chrome.FindElement(By.Id(kind_element)).Click();
         }
 
 
@@ -123,12 +131,6 @@ namespace NishinoLibrary
 
 
 
-
-
-
-
-
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -162,7 +164,7 @@ namespace Superme
             timer1.Enabled = true;
             NowTime.Text = DateTime.Now.ToString("HH: mm:ss");
 
-            SeleniumTimer.Interval = 3000;//1000ms
+            SeleniumTimer.Interval = 100;//1000ms
             SeleniumTimer.Tick += new EventHandler(SeleniumTimer_Tick);
             SeleniumTimer.Enabled = false;
 
@@ -170,7 +172,13 @@ namespace Superme
             // ChromeDriverオブジェクトを生成
             sel = new Selenium();
             sel.CreateBrowser();
-            sel.Access(@"https://japan.supremenewyork.com/");
+            sel.Access(@"file:///C:/Users/ynishino/Desktop/Superme/Superme_110033.html");
+
+
+            FirstNameTextBox.Text = "Yuki";
+            LastNameTextBox.Text = "Nishino";
+            EmailTextBox.Text = @"nishino23210@gmail.com";
+            TelTextBox.Text = "08046877867";
 
         }
 
@@ -181,16 +189,16 @@ namespace Superme
         {
             //表示時刻を更新
             NowTime.Text = DateTime.Now.ToString("HH:mm:ss");
-            if (DateTime.Now.ToString("HHmmss") == "105945")
-            {
-                Now.Text = "保存中";
-                SeleniumTimer.Enabled = true;
-            }
-            if (DateTime.Now.ToString("HHmmss") == "110200")
-            {
-                Now.Text = "保存完了";
-                SeleniumTimer.Enabled = false;
-            }
+            //if (DateTime.Now.ToString("HHmmss") == "105945")
+            //{
+            //    Now.Text = "保存中";
+            //    SeleniumTimer.Enabled = true;
+            //}
+            //if (DateTime.Now.ToString("HHmmss") == "110200")
+            //{
+            //    Now.Text = "保存完了";
+            //    SeleniumTimer.Enabled = false;
+            //}
 
 
         }
@@ -198,21 +206,41 @@ namespace Superme
         //Selenium実行中に発動させる処理
         private void SeleniumTimer_Tick(object sender, EventArgs e)
         {
+            //抽選サイトがクローズしているかを判定
+            if (sel.GetPageSource().Contains("クローズ"))
+            {
+                //ページをリフレッシュ
+                sel.RefreshPage();
+            }
+            else
+            {
+                SeleniumTimer.Enabled = false;
+                Now.Text = "入力中";
+                //			<input name="c9d8c800e05378825bc8a952add0fa69" placeholder="your name" size="50" maxlength="25" class="form-control" autocomplete="off" value="">
+                sel.OutputTextbox(FirstNameTextBox.Text+LastNameTextBox.Text, 0);
+                sel.OutputTextbox(EmailTextBox.Text, 1);
+                sel.OutputTextbox(TelTextBox.Text, 2);
+                sel.Click("area_tokyo");
+                sel.Click("agree");
+                Now.Text = "入力完了";
+            }
             //None 
+
+        }
+
+
+        //使っていないメソッド。HTMLを保存するやつ
+        private void GetHtml()
+        {
             //とりあえずHTMLを保存する処理を実行する
             string html_get_dir = @"C:\Users\ynishino\Desktop\superme\";
-            string save_name = "Superme_"+ DateTime.Now.ToString("HHmmss") + ".html";
+            string save_name = "Superme_" + DateTime.Now.ToString("HHmmss") + ".html";
             string filePath = html_get_dir + save_name;
             StreamWriter sw = new StreamWriter(filePath, false, Encoding.UTF8);
             sel.RefreshPage();
             sw.Write(sel.GetPageSource());
             sw.Close();
-
-            //Now.Text = "保存完了";
-            //SeleniumTimer.Enabled = false;
-
         }
-
 
 
         private void RunButton_Click(object sender, EventArgs e)
@@ -226,6 +254,12 @@ namespace Superme
             Now.Text = "待機中";
             SeleniumTimer.Enabled = false;
         }
+
+        private void TextBox4_TextChanged(object sender, EventArgs e)
+        {
+
+        }
     }
 }
+
 
